@@ -9,13 +9,21 @@ import {
 import { VersionWithoutPatch } from './versionCore';
 
 export async function patchSolanaDependencies(
-  ctx: Pick<RenderContext, 'solanaVersion' | 'targetDirectory'>
+  ctx: Pick<
+    RenderContext,
+    'solanaVersion' | 'targetDirectory' | 'programFramework'
+  >
 ): Promise<void> {
   const patchMap: Record<VersionWithoutPatch, string[]> = {
     '1.17': ['-p ahash@0.8.12 --precise 0.8.6'],
   };
 
   const patches = patchMap[ctx.solanaVersion.withoutPatch] ?? [];
+
+  if (ctx.programFramework === 'anchor') {
+    patches.push('-p base64ct@1.8.0 --precise 1.7.3');
+  }
+
   await Promise.all(
     patches.map(async (patch) =>
       waitForCommand(
